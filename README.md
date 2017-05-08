@@ -1,4 +1,4 @@
-# Final_Project
+# Final Project
 
 Team  | Team Members | Competition
 ------------- | ------------- | -------------
