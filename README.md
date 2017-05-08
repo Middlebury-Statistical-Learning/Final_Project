@@ -10,5 +10,5 @@ E | Connor McCormick | <a target="_blank" class="page-link" href="https://www.ka
 F | Aayam Poudel & David Valentin | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/bike-sharing-demand/">Bike Sharing Demand</a>
 G | Marcos Barrozo | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/bike-sharing-demand/">Bike Sharing Demand</a>
 H | Kyra Gray & Will Ernst | 
-I | Phil Hoxie & Otto Nagengast | 
+I | Phil Hoxie & Otto Nagengast | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/prudential-life-insurance-assessment/">Prudential Life Insurance Assessment</a>
 J | Rebecca Conover & Nina Sonneborn | 
