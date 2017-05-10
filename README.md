@@ -9,7 +9,7 @@ D | Brenda Li | <a target="_blank" class="page-link" href="https://www.kaggle.co
 E | Connor McCormick | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/shelter-animal-outcomes/">Shelter Animal Outcomes</a>
 F | Aayam Poudel & David Valentin | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/rossmann-store-sales/">Rossmann Store Sales</a>
 G | Marcos Barrozo | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/bike-sharing-demand/">Bike Sharing Demand</a>
-H | Kyra Gray & Will Ernst | 
+H | Kyra Gray & Will Ernst | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/restaurant-revenue-prediction/">Restaurant Revenue Prediction</a>
 I | Phil Hoxie & Otto Nagengast | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/prudential-life-insurance-assessment/">Prudential Life Insurance Assessment</a>
 J | Rebecca Conover & Nina Sonneborn | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/airbnb-recruiting-new-user-bookings/">Airbnb New User Bookings</a>
 K | Kelsey Hoekstra | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/allstate-claims-severity/">Allstate Claims Severity</a>
