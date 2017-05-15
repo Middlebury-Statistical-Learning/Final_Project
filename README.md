@@ -14,5 +14,7 @@ I | Phil Hoxie & Otto Nagengast | <a target="_blank" class="page-link" href="htt
 J | Rebecca Conover & Nina Sonneborn | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/airbnb-recruiting-new-user-bookings/">Airbnb New User Bookings</a>
 K | Kelsey Hoekstra | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/allstate-claims-severity/">Allstate Claims Severity</a>
 L | Sierra Moen | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/GiveMeSomeCredit/">Give Me Some Credit</a>
+M | Shannia Fu | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/job-salary-prediction/">Job Salary Prediction</a>
+N | Ben Czekanski | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/liberty-mutual-fire-peril/">Liberty Mutual Group - Fire Peril Loss Cost</a>
 X | Albert Y. Kim | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/titanic">Titanic: Machine Learning from Disaster</a>
 
