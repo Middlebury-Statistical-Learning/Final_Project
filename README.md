@@ -16,5 +16,6 @@ K | Kelsey Hoekstra | <a target="_blank" class="page-link" href="https://www.kag
 L | Sierra Moen | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/GiveMeSomeCredit/">Give Me Some Credit</a>
 M | Shannia Fu | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/job-salary-prediction/">Job Salary Prediction</a>
 N | Ben Czekanski | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/liberty-mutual-fire-peril/">Liberty Mutual Group - Fire Peril Loss Cost</a>
+O | Jewel Chen | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/otto-group-product-classification-challenge/">Otto Group Product Classification Challenge</a>
 X | Albert Y. Kim | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/titanic">Titanic: Machine Learning from Disaster</a>
 
