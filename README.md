@@ -1,4 +1,6 @@
-# Final Project
+# Final Projects
+
+Kaggle competition choices
 
 Team  | Team Members | Competition
 ------------- | ------------- | -------------
