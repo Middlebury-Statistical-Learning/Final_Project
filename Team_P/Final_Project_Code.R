@@ -246,7 +246,7 @@ for(i in 1:15120)
 max(k_values)
 k_star <- match(max(k_values),k_values)
 
-# Instead, k=750 will be the arbitrary K-star value, and cross validation 
+# Instead, k=450 will be the arbitrary K-star value, and cross validation 
 # will be done for this instead.
 scores <- as.vector(1:n_folds)
 for(j in 1:n_folds)
