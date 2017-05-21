@@ -16,7 +16,7 @@ I | Phil Hoxie & Otto Nagengast | <a target="_blank" class="page-link" href="htt
 J | Rebecca Conover & Nina Sonneborn | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/airbnb-recruiting-new-user-bookings/">Airbnb New User Bookings</a>
 K | Kelsey Hoekstra | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/allstate-claims-severity/">Allstate Claims Severity</a>
 L | Sierra Moen | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/GiveMeSomeCredit/">Give Me Some Credit</a>
-M | Shannia Fu | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/job-salary-prediction/">Job Salary Prediction</a>
+M | Shannia Fu | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/kobe-bryant-shot-selection/">Kobe Bryant Shot Selection</a>
 N | Ben Czekanski | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/liberty-mutual-fire-peril/">Liberty Mutual Group - Fire Peril Loss Cost</a>
 O | Jewel Chen | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/otto-group-product-classification-challenge/">Otto Group Product Classification Challenge</a>
 P | Alexander Pastora | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/forest-cover-type-prediction/">Forest Cover Type Prediction</a>
