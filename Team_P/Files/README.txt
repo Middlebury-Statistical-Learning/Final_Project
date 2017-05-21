@@ -1,0 +1,1 @@
+Unfortunately, the test.csv file can not be uploaded to GitHub, because it is 72.4MB in size (565,892 observations). It can be found at https://www.kaggle.com/c/forest-cover-type-prediction/data . It is a csv file, but it does come in a Zip File, so you will have to unzip it first.
