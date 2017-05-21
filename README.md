@@ -1,6 +1,8 @@
 # Final Projects
 
-Kaggle competition choices
+Exit survey Google Forms available [here](https://docs.google.com/forms/d/e/1FAIpQLSc6RXTKXWMvWmlW2Qbji-cVI543e9eMI0EupoDk88xeTCXv_Q/viewform).
+
+Kaggle competition choices:
 
 Team  | Team Members | Competition
 ------------- | ------------- | -------------
