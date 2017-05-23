@@ -13,8 +13,8 @@ library(stringr)
 library(Metrics)
 
 #------ LOAD TRAIN / TEST DATA ------------------------------------------------------------
-train <- readr::read_csv("train.csv")
-test <- readr::read_csv("test.csv")
+train <- readr::read_csv("Files/train.csv")
+test <- readr::read_csv("Files/test.csv")
 
 #------- DATA CLEANING --------------------------------------------------------------------
 #Format train dates
