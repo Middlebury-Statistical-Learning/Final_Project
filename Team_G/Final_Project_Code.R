@@ -12,9 +12,8 @@ library(glmnet)
 library(msaenet) #package for RMSLE
 
 #Section II - Data Cleaning ----------------------------------------------------------------
-setwd("~/Final Project")
-train <- read_csv("train.csv")
-test <- read_csv("test.csv")
+train <- read_csv("Files/train.csv")
+test <- read_csv("Files/test.csv")
 
 #generate a control for "later" observations
 train <- train %>%
@@ -59,9 +58,9 @@ test$hour <- as.factor(test$hour)
 
 
 #dummy for sunday
-train <- train %>% 
+train <- train %>%
   mutate(sunday=ifelse(day== "Sunday",1,0))
-test <- test %>% 
+test <- test %>%
   mutate(sunday=ifelse(day== "Sunday",1,0))
 
 #Test set doesn't have extreme weather, and so it was messing up my fixed effects - deleting it.
@@ -106,14 +105,14 @@ train %>%
 ### Plotting time of day and rentals
 train %>%
   ggplot(aes(x=daypart, y=count)) +
-  geom_boxplot() + 
+  geom_boxplot() +
   labs(x="Time period", y="# of Total Rentals", title="Relationship between time of day and demand")
 #afternoon is a good time!
 
 ### Rentals by Season (probably correlated with temperature)
 train %>%
   ggplot(aes(x=factor(season), y=count)) +
-  geom_boxplot() + 
+  geom_boxplot() +
   labs(x="Season", y="# of Total Rentals", title="Rental averages by season")
 #Fall is the best season apparently!
 
@@ -125,7 +124,7 @@ train %>%
 model_formula <- as.formula("count~season+holiday+workingday+weather+windspeed+atemp+late+humidity+day+sunday+daypart+time")
 depth_vector <- 3:20      #different tree depths
 # Number of folds for x-validation
-n_folds <- 10 
+n_folds <- 10
 
 #Assign fold numbers
 train <- train %>%
@@ -139,28 +138,28 @@ depth_RMSLE <- rep(0, length(depth_vector))
 
 #outer loop - testing different depths
 for(j in 1:length(depth_vector)) {
-  
+
   #inner loop
   for (i in 1:n_folds) {
     pseudo_test <- train %>%
       filter(fold==i)
     pseudo_train <- train %>%
       filter(fold!=i)
-    
+
     #fit tree
     knobs <- rpart.control(maxdepth = depth_vector[j])
     model_CART <- rpart(model_formula, data = train, control=knobs)
-    
-    #predictions 
+
+    #predictions
     tree_predictions <- predict(model_CART, newdata=pseudo_test)
-    
-    
-    
-    
+
+
+
+
     #store RMSLE for this fold
     fold_RMSLE_tree[i] <- msaenet.rmsle(pseudo_test$count, tree_predictions)
-  }   
-  
+  }
+
   depth_RMSLE[j] <- mean(fold_RMSLE_tree)
   if(j %% 5 == 0){
     paste("Done CV for depth =", depth_vector[j], "on", Sys.time()) %>% print()}
@@ -174,7 +173,7 @@ text(model_CART, use.n = TRUE)
 box()
 
 #Find optimal max depth and make predictions with it
-rmsle_min_tree <- min(depth_RMSLE) 
+rmsle_min_tree <- min(depth_RMSLE)
 depth_report <- data_frame(depth_vector, depth_RMSLE)
 optimal_depth <- depth_report %>%
   filter(depth_RMSLE==min(depth_RMSLE)) %>%
@@ -188,8 +187,8 @@ kaggle_CART <- data_frame(test$datetime, CART_predictions)
 
 #Write submissions to CSV
 names(kaggle_CART) <- c("datetime", "count")
-kaggle_CART %>% 
-  write_csv("CART_submission.csv")  
+kaggle_CART %>%
+  write_csv("Files/CART_submission.csv")
 
 #The submission added random strings where there should be spaces in "datetime".
 #Nothing in the R environment shows them, but once I open the csv, the datetime variable has these awkward strings, which I had to remove before submitting."
@@ -221,20 +220,20 @@ kaggle_CART %>%
 #holidays
 train %>%
   ggplot(aes(x=factor(holiday), y=count)) +
-  geom_boxplot() + 
+  geom_boxplot() +
   labs(x="1 = Holiday", y="# of Total Rentals", title="Is there a different # of rentals on holidays?")
 
 ### Rentals by weather condition
 train %>%
   ggplot(aes(x=factor(weather), y=count)) +
-  geom_boxplot() + 
+  geom_boxplot() +
   labs(x="Weather Conditions", y="# of Total Rentals", title="Rental averages by season")
 
 
 #working days
 train %>%
   ggplot(aes(x=factor(workingday), y=count)) +
-  geom_boxplot(aes(ymax=500)) + 
+  geom_boxplot(aes(ymax=500)) +
   labs(x="1 = Working Day", y="# of Total Rentals", title="Is there a different # of rentals on working days?")
 
 
@@ -269,7 +268,7 @@ X <- train %>%
   select(atemp,temp)
 
 #Recentering variables
-X_recenter <- X %>% 
+X_recenter <- X %>%
   mutate(
     atemp = atemp - mean(atemp),
     temp = temp - mean(temp)
@@ -280,10 +279,10 @@ eigen <- cov(X_recenter) %>% eigen()
 eigen_vals <- eigen$values
 Gamma <- eigen$vectors
 
-# Transform n x p matrix of observations to principal components space using 
+# Transform n x p matrix of observations to principal components space using
 # matrix multiplication operator %*%:
-Y <- as.matrix(X_recenter) %*% Gamma %>% 
-  as_data_frame() %>% 
+Y <- as.matrix(X_recenter) %*% Gamma %>%
+  as_data_frame() %>%
   rename(Y1 = V1, Y2 = V2)
 
 var_Y <- cov(Y) %>% diag()
@@ -303,8 +302,8 @@ X_test <- test %>%
     temp = temp - mean(temp)
   )
 Gamma_test <- eigen$vectors
-Y_test <- as.matrix(X_test) %*% Gamma_test %>% 
-  as_data_frame() %>% 
+Y_test <- as.matrix(X_test) %*% Gamma_test %>%
+  as_data_frame() %>%
   rename(Y1 = V1, Y2 = V2)
 test <- test %>%
   mutate(temp_pca=Y_test$Y1)
@@ -331,40 +330,40 @@ lambda_RMSLE <- rep(0, length(lambda_vector))
 
 #outer loop - testing different lambdas
 for(j in 1:length(lambda_vector)) {
-  
+
   #inner loop
   for (i in 1:n_folds) {
     pseudo_test <- train %>%
       filter(fold==i)
     pseudo_train <- train %>%
       filter(fold!=i)
-    
-    
+
+
     #fit model to pseudo_train
     # Used in glmnet() function for ridge regression and LASSO
     X <- model.matrix(model_formula, data = pseudo_train)[, -1]
     y <- pseudo_train$count
-    
+
     model_LASSO <- glmnet(X, y, alpha = 1, lambda = lambda_vector[j])
-    
+
     #predict values in pseudo_test
     pseudo_test_X <- model.matrix(model_formula, data = pseudo_test)[, -1]
-    LASSO_predictions <- model_LASSO %>% 
+    LASSO_predictions <- model_LASSO %>%
       predict(newx=pseudo_test_X, s=lambda_vector[j])
     # Changing my predicted negative values to 0, can't go wrong with that
     LASSO_predictions <- replace(LASSO_predictions, LASSO_predictions<0, 0)
-    
-    
-    
+
+
+
     #store RMSLE for this fold
     fold_RMSLE[i] <- msaenet.rmsle(pseudo_test$count, LASSO_predictions)
-    
+
   }
   #average all folds for given lambda
   lambda_RMSLE[j] <- mean(fold_RMSLE)
   if(j %% 25 == 0){
     paste("Done CV for lambda =", lambda_vector[j], "on", Sys.time()) %>% print()}
-  
+
 }
 
 
@@ -403,7 +402,7 @@ ggplot(coefficients, aes(x=log_lambda, y=estimate, col=term)) +
 model_LASSO <- glmnet(X, y, alpha = 1, lambda = lambda_star_lasso)
 test_X <- model.matrix(as.formula("~factor(season)+holiday+workingday+factor(weather)+windspeed+atemp+late+humidity+factor(day)+daypart+time"), data = test)[, -1]
 #test_X <- model.matrix(model_formula, data = test)[, -1] for some reason this doesn't work
-LASSO_submission <- model_LASSO %>% 
+LASSO_submission <- model_LASSO %>%
   predict(newx=test_X, s=lambda_star_lasso)
 LASSO_submission <- replace(LASSO_submission, LASSO_submission<0, 0)
 LASSO_submission<- as.vector(LASSO_submission)
@@ -412,7 +411,7 @@ LASSO_submission<- as.vector(LASSO_submission)
 kaggle_LASSO <- data_frame(test$datetime, LASSO_submission)
 names(kaggle_LASSO) <- c("datetime", "count")
 # Write submissions to CSV
-kaggle_LASSO %>% 
+kaggle_LASSO %>%
   write_csv("LASSO_submission.csv")
 
 test$datetime %>%
@@ -421,7 +420,7 @@ test$datetime %>%
 ##################################################################
 #CV for Linear regression using RMSLE as the scoring mechanism ------------------------------
 ##################################################################
-n_folds <- 10 
+n_folds <- 10
 fold_RMSLE_lm <- rep(0, length(n_folds))
 #loop
 for (i in 1:n_folds) {
@@ -429,19 +428,19 @@ for (i in 1:n_folds) {
     filter(fold==i)
   pseudo_train <- train %>%
     filter(fold!=i)
-  
+
   #fit model to pseudo_train
   model_lm <- lm(model_formula, data=pseudo_train)
-  
-  
-  
+
+
+
   #predict values in pseudo_test
-  lm_predictions <- model_lm %>%  
-    predict(newdata=pseudo_test) 
+  lm_predictions <- model_lm %>%
+    predict(newdata=pseudo_test)
   lm_predictions <- replace(lm_predictions, lm_predictions<0, 0)
   #store RMSLE for this fold
   fold_RMSLE_lm[i] <- msaenet.rmsle(pseudo_test$count, lm_predictions)
-  
+
 }
 rmsle_min_lm <- mean(fold_RMSLE_lm)
 
@@ -449,8 +448,8 @@ rmsle_min_lm <- mean(fold_RMSLE_lm)
 # Fit predictions to test data (since lambda=0, just doing lm)
 model_lm <- lm(model_formula, data=train)
 
-lm_submission <- model_lm %>%  
-  predict(newdata=test) 
+lm_submission <- model_lm %>%
+  predict(newdata=test)
 kaggle_lm <- data_frame(test$datetime, lm_predictions)
 # Changing my predicted negative values to 0, can't go wrong with that
 kaggle_lm <- kaggle_lm %>%
@@ -468,7 +467,7 @@ model_formula <- as.formula("count~factor(season)+holiday+workingday+factor(weat
 # Vector of different lambdas to try
 lambda_vector <- 0:150
 # Number of folds for x-validation
-n_folds <- 10 
+n_folds <- 10
 
 #Assign fold numbers
 train <- train %>%
@@ -482,35 +481,35 @@ lambda_RMSLE_poisson <- rep(0, length(lambda_vector))
 
 #outer loop - testing different lambdas
 for(j in 1:length(lambda_vector)) {
-  
+
   #inner loop
   for (i in 1:n_folds) {
     pseudo_test <- train %>%
       filter(fold==i)
     pseudo_train <- train %>%
       filter(fold!=i)
-    
-    
+
+
     #fit model to pseudo_train
     X <- model.matrix(model_formula, data = pseudo_train)[, -1]
     y <- pseudo_train$count
-    
+
     model_poisson <- glmnet(X, y, family = "poisson", alpha=1, lambda=lambda_vector[j])
-    
+
     #predict values in pseudo_test
     pseudo_test_X <- model.matrix(model_formula, data = pseudo_test)[, -1]
-    poisson_predictions <- model_poisson %>% 
+    poisson_predictions <- model_poisson %>%
       predict(newx=pseudo_test_X, s=lambda_vector[j])
-    
+
     #store RMSLE for this fold
     fold_RMSLE_poisson[i] <- msaenet.rmsle(pseudo_test$count, poisson_predictions)
-    
+
   }
   #average all folds for given lambda
   lambda_RMSLE_poisson[j] <- mean(fold_RMSLE_poisson)
   if(j %% 25 == 0){
     paste("Done CV for lambda =", lambda_vector[j], "on", Sys.time()) %>% print()}
-  
+
 }
 
 #PLOT RMSLE VALUES - LASSO with linear regression works better
