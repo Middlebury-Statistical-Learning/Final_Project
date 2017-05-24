@@ -9,22 +9,21 @@ library(plotly)
 
 #----load data----
 #I have never uploaded files to GitHub before so I hope this works.
-setwd("~TeamX")
 
-#You're going to need to change this because I couldn't upload Train or Test
-train<- read_csv("~/Google Drive/Math/final_train.csv")
-test<- read_csv("~/Google Drive/Math/final_test.csv")
-sample_sub <- read_csv("~/Files/final_sample_submission.csv")
+# Unzip this train.csv.zip first
+train<- read_csv("Files/train.csv")
+test<- read_csv("Files/test.csv")
+sample_sub <- read_csv("Files/sample_submission.csv")
 
-#to make it run faster I randomly sampled some of the train set 
+#to make it run faster I randomly sampled some of the train set
 #you can omit this if you want
 train <- train %>%
   sample_frac(0.7)
 
 #create dummy var (useful for modeling)
-train1 <- train %>% 
+train1 <- train %>%
   mutate(dummy_var = 1)
-test <- test %>% 
+test <- test %>%
   mutate(dummy_var = 1)
 
 
@@ -44,16 +43,16 @@ ggplot(cont_train, aes(x=cont2, y=loss)) +
   geom_point()
 #cont2 is actually discrete and loss seems pos correlated
 
-boxplot(logloss~ cat80, data=cat_train, 
+boxplot(logloss~ cat80, data=cat_train,
         xlab="j", ylab="loss")
 
 boxplot(logloss~ cat12, data = cat_train,
         xlab="j", ylab="loss")
 
-boxplot(logloss~ cat81, data=cat_train, 
+boxplot(logloss~ cat81, data=cat_train,
         xlab="j", ylab="loss")
 
-boxplot(logloss~ cat72, data=cat_train, 
+boxplot(logloss~ cat72, data=cat_train,
         xlab="j", ylab="loss")
 
 
@@ -62,15 +61,15 @@ boxplot(logloss~ cat72, data=cat_train,
 
 #select variables
 train2<- train1 %>%
-  select(id,loss, dummy_var, cat1, cont2, cont3, cat7, cat12, cat23, cat36,  
+  select(id,loss, dummy_var, cat1, cont2, cont3, cat7, cat12, cat23, cat36,
          cat57, cat72, cat80,  cat81, cat87, cat100)
 
 #make model
-model_formula <- train2 %>% 
+model_formula <- train2 %>%
   # Take all predictor variable names and separate them with + signs:
-  names() %>% 
-  setdiff(c("id", "loss", "dummy_var")) %>% 
-  stringr::str_c(collapse=" + ") %>% 
+  names() %>%
+  setdiff(c("id", "loss", "dummy_var")) %>%
+  stringr::str_c(collapse=" + ") %>%
   # Add outcome variable and ~ sign and convert to formula
   stringr::str_c("dummy_var ~ ", .)
 model_formula
@@ -118,29 +117,29 @@ train2 <- train2 %>%
 results<- numeric(length(n_folds))
 
 for(i in 1:n_folds){
-  
+
   #create folds
   pseudo_train <- train2 %>%
     filter(fold != i)
   pseudo_test <- train2 %>%
     filter(fold == i)
-  
+
   #pseudo_train model
-  model_formula <- pseudo_train %>% 
+  model_formula <- pseudo_train %>%
     # Take all predictor variable names and separate them with + signs:
-    names() %>% 
-    setdiff(c("id", "loss", "dummy_var", "fold")) %>% 
-    stringr::str_c(collapse=" + ") %>% 
+    names() %>%
+    setdiff(c("id", "loss", "dummy_var", "fold")) %>%
+    stringr::str_c(collapse=" + ") %>%
     # Add outcome variable and ~ sign and convert to formula
     stringr::str_c("dummy_var ~ ", .)
   model_formula
   model_formula <- as.formula(model_formula)
-  
+
   X <- model.matrix(model_formula, data = pseudo_train)[, -1]
   y <- pseudo_train$loss
-  
+
   model_BIG <- glmnet(X, y, alpha = 0, lambda = lambda_star)
-  
+
   #create predictions
   X_new <- model.matrix(model_formula, data = pseudo_test)[, -1]
   predictions <- model_BIG %>%
@@ -160,7 +159,7 @@ predictions <- model_BIG %>%
   predict(newx= test_X, s = lambda_star)
 
 # Write submissions to CSV
-sample_sub %>% 
-  mutate(loss = as.vector(predictions)) %>% 
-  write_csv("~/Desktop/final_submission.csv")
+sample_sub %>%
+  mutate(loss = as.vector(predictions)) %>%
+  write_csv("Files/final_submission.csv")
 #submitted on 5/16 for a formal score of 1423.3
