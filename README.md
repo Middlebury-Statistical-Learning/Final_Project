@@ -22,6 +22,5 @@ N | Ben Czekanski | <a target="_blank" class="page-link" href="https://www.kaggl
 O | Jewel Chen | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/otto-group-product-classification-challenge/">Otto Group Product Classification Challenge</a>
 P | Alexander Pastora | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/forest-cover-type-prediction/">Forest Cover Type Prediction</a>
 Q | Malik Gomez | 
-Z | Ryan Rizzo | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/allstate-claims-severity/">Allstate Claims Severity</a>
 X | Albert Y. Kim | <a target="_blank" class="page-link" href="https://www.kaggle.com/c/titanic">Titanic: Machine Learning from Disaster</a>
 
