@@ -11,10 +11,8 @@
 library(tidyverse)
 library(broom)
 library(lubridate)
-#cool themes 
-install.packages('ggthemes')
+#cool themes
 library(ggthemes)
-install.packages('glmnet')
 library(glmnet)
 library(bisoreg)
 
@@ -40,42 +38,42 @@ test <- left_join(test,store,by="Store")
 #sample_frac(0.1)
 
 #modify train to get variables that make sense
-modified_train <- train %>% 
+modified_train <- train %>%
   mutate(Year=year(Date), Month=month(Date), DayOfMonth=day(Date)) %>%
-  select(-Date, -Promo2SinceWeek, -PromoInterval, -Promo2SinceYear, -CompetitionOpenSinceMonth, -CompetitionOpenSinceYear) %>% 
-  mutate(StateHoliday = ifelse(is.na(StateHoliday), 0, StateHoliday)) %>% 
-  mutate(CompetitionDistance = ifelse(is.na(CompetitionDistance), 0, CompetitionDistance)) %>% 
-  group_by(Store) %>% 
-  mutate(avg_sales_by_storetype = mean(Sales)) %>% 
-  mutate(avg_customers_by_storetype = mean(Customers)) %>% 
-  mutate(avg_distance_by_storetype = mean(CompetitionDistance)) %>% 
-  mutate(total_num_promotions = sum(Promo)) %>% 
-  mutate(Sales_Per_Customer = signif(Sales/Customers, 5)) %>% 
-  mutate(Sales_Per_Customer = ifelse(is.na(Sales_Per_Customer), 0, Sales_Per_Customer)) 
+  select(-Date, -Promo2SinceWeek, -PromoInterval, -Promo2SinceYear, -CompetitionOpenSinceMonth, -CompetitionOpenSinceYear) %>%
+  mutate(StateHoliday = ifelse(is.na(StateHoliday), 0, StateHoliday)) %>%
+  mutate(CompetitionDistance = ifelse(is.na(CompetitionDistance), 0, CompetitionDistance)) %>%
+  group_by(Store) %>%
+  mutate(avg_sales_by_storetype = mean(Sales)) %>%
+  mutate(avg_customers_by_storetype = mean(Customers)) %>%
+  mutate(avg_distance_by_storetype = mean(CompetitionDistance)) %>%
+  mutate(total_num_promotions = sum(Promo)) %>%
+  mutate(Sales_Per_Customer = signif(Sales/Customers, 5)) %>%
+  mutate(Sales_Per_Customer = ifelse(is.na(Sales_Per_Customer), 0, Sales_Per_Customer))
 
 #modify test to get variables that make sense
 modified_test <- test %>%
   mutate(Year=year(Date), Month=month(Date), DayOfMonth=day(Date)) %>%
-  select(-Date, -Promo2SinceWeek, -PromoInterval, -Promo2SinceYear, -CompetitionOpenSinceMonth, -CompetitionOpenSinceYear) %>% 
-  mutate(CompetitionDistance = ifelse(is.na(CompetitionDistance), 0, CompetitionDistance)) %>% 
-  mutate(Open = ifelse(is.na(Open), 0, Open)) %>% 
-  mutate(StateHoliday = ifelse(is.na(StateHoliday), 0, StateHoliday)) %>% 
+  select(-Date, -Promo2SinceWeek, -PromoInterval, -Promo2SinceYear, -CompetitionOpenSinceMonth, -CompetitionOpenSinceYear) %>%
+  mutate(CompetitionDistance = ifelse(is.na(CompetitionDistance), 0, CompetitionDistance)) %>%
+  mutate(Open = ifelse(is.na(Open), 0, Open)) %>%
+  mutate(StateHoliday = ifelse(is.na(StateHoliday), 0, StateHoliday)) %>%
   group_by(Store) %>%
-  mutate(avg_distance_by_storetype = mean(CompetitionDistance)) %>% 
+  mutate(avg_distance_by_storetype = mean(CompetitionDistance)) %>%
   mutate(total_num_promotions = sum(Promo))
 
 
 #group data by day
 group_by_day <- modified_train %>%
   group_by(DayOfWeek, Year) %>%
-  summarise(TotalSales = mean(Sales)) %>% mutate(String_Day_Of_Week = 
+  summarise(TotalSales = mean(Sales)) %>% mutate(String_Day_Of_Week =
                                                    ifelse(DayOfWeek == 1, "Monday",
-                                                          ifelse(DayOfWeek == 2, "Tuesday", 
-                                                                 ifelse(DayOfWeek == 3, "Wednesday", 
-                                                                        ifelse(DayOfWeek == 4, "Thursday", 
+                                                          ifelse(DayOfWeek == 2, "Tuesday",
+                                                                 ifelse(DayOfWeek == 3, "Wednesday",
+                                                                        ifelse(DayOfWeek == 4, "Thursday",
                                                                                ifelse(DayOfWeek == 5, "Friday",
-                                                                                      ifelse(DayOfWeek == 6, "Saturday", 
-                                                                                             ifelse(DayOfWeek == 7, "Sunday", 0)))))))) 
+                                                                                      ifelse(DayOfWeek == 6, "Saturday",
+                                                                                             ifelse(DayOfWeek == 7, "Sunday", 0))))))))
 
 
 
@@ -83,18 +81,18 @@ group_by_day <- modified_train %>%
 # Lets group data by month and create some new variables for plotting
 group_by_month <- modified_train %>%
   group_by(Month, Year) %>%
-  summarise(TotalSales = mean(Sales), MedianSales = median(Sales), PromotionsByMonth = sum(Promo2)) %>% 
-  mutate(String_Month = ifelse(Month == 1, "January", 
-                               ifelse(Month == 2, "February", 
-                                      ifelse(Month == 3, "March", 
-                                             ifelse(Month == 4, "April", 
+  summarise(TotalSales = mean(Sales), MedianSales = median(Sales), PromotionsByMonth = sum(Promo2)) %>%
+  mutate(String_Month = ifelse(Month == 1, "January",
+                               ifelse(Month == 2, "February",
+                                      ifelse(Month == 3, "March",
+                                             ifelse(Month == 4, "April",
                                                     ifelse(Month == 5, "May",
-                                                           ifelse(Month == 6, "June", 
-                                                                  ifelse(Month == 7, "July", 
-                                                                         ifelse(Month == 8, "August", 
-                                                                                ifelse(Month == 9, "September", 
-                                                                                       ifelse(Month == 10, "October", 
-                                                                                              ifelse(Month == 11, "November", 
+                                                           ifelse(Month == 6, "June",
+                                                                  ifelse(Month == 7, "July",
+                                                                         ifelse(Month == 8, "August",
+                                                                                ifelse(Month == 9, "September",
+                                                                                       ifelse(Month == 10, "October",
+                                                                                              ifelse(Month == 11, "November",
                                                                                                      ifelse(Month == 12, "December", 0)))))))))))))
 
 
@@ -119,18 +117,18 @@ dayofweek_sales <- ggplot(group_by_day, aes(y=TotalSales, x=DayOfWeek, fill=Stri
 # We can see that Sunday definitely has the lowest number of Sales reported, which makes sense.
 dayofweek_sales
 
-#3b EDA on Sales by Month 
+#3b EDA on Sales by Month
 #________________________
 
 
 
 # Lets take a look at the mean of the sales by day of week!
 month_sales <- ggplot(group_by_month, aes(y=TotalSales, x=Month, fill=String_Month)) +
-  geom_bar(stat="identity") + 
+  geom_bar(stat="identity") +
   facet_wrap(~Year) +
   ggtitle("Mean Number of Sales by Month") +
-  theme_fivethirtyeight() +   
-  theme(axis.title = element_text()) + ylab('Mean Sales') + xlab("Month")   
+  theme_fivethirtyeight() +
+  theme(axis.title = element_text()) + ylab('Mean Sales') + xlab("Month")
 
 
 # We can see that December has the highest Mean Sales, which makes sense because of the all the Holidays then!
@@ -143,53 +141,53 @@ month_sales
 # Let's look at the correlation between Sales and whether there was a promo event or not.
 promo_vs_sales <- ggplot(train, aes(x=Promo, y=Sales, group=Promo)) +
   geom_boxplot(alpha=0.2) +
-  scale_y_log10() + 
+  scale_y_log10() +
   ggtitle("Non-Promo vs Promo Sales") +
-  theme_fivethirtyeight() +   
-  theme(axis.title = element_text()) + ylab('Sales') + xlab("Non-Promotion VS Promotion") 
+  theme_fivethirtyeight() +
+  theme(axis.title = element_text()) + ylab('Sales') + xlab("Non-Promotion VS Promotion")
 
-# Interesting, promotions definitely have an effect the number of sales by looking at it through a log scale. 
+# Interesting, promotions definitely have an effect the number of sales by looking at it through a log scale.
 promo_vs_sales
 
 #3d. EDA on Store Type
 #________________
 
-#Lets group data by Store Type and create some new variables for plotting 
+#Lets group data by Store Type and create some new variables for plotting
 
 group_by_promos <- modified_train %>% group_by(StoreType, Year) %>%
-  summarise(Mean_Sales_By_Storetype = mean(Sales), Median_Sales_By_Storetype = median(Sales), Promotions_By_StoreType = sum(Promo)) 
+  summarise(Mean_Sales_By_Storetype = mean(Sales), Median_Sales_By_Storetype = median(Sales), Promotions_By_StoreType = sum(Promo))
 
-#Lollipop Test Chart 
-lollipop_sales_by_storetype <- ggplot(group_by_promos, aes(x=Mean_Sales_By_Storetype, y=StoreType, color=StoreType, label = paste0(round(Mean_Sales_By_Storetype, 0)))) + 
-  geom_segment(aes(x = 0, y = StoreType, xend = Mean_Sales_By_Storetype, yend = StoreType), color = "black") +  
+#Lollipop Test Chart
+lollipop_sales_by_storetype <- ggplot(group_by_promos, aes(x=Mean_Sales_By_Storetype, y=StoreType, color=StoreType, label = paste0(round(Mean_Sales_By_Storetype, 0)))) +
+  geom_segment(aes(x = 0, y = StoreType, xend = Mean_Sales_By_Storetype, yend = StoreType), color = "black") +
   facet_wrap(~Year) +
   xlim(0, 12000) +
   ggtitle("Sales By Store Type") +
   geom_point(size=11) +
   geom_text(color = "white", size = 3) +
-  theme_fivethirtyeight() +   
-  theme(panel.spacing = unit(2, "lines"), axis.title = element_text()) + xlab('Sales') + ylab("Store Type") 
+  theme_fivethirtyeight() +
+  theme(panel.spacing = unit(2, "lines"), axis.title = element_text()) + xlab('Sales') + ylab("Store Type")
 
-# We can see that year on year, StoreType B had increased sales over other StoreTypes. Maybe, we should investigate this further. 
+# We can see that year on year, StoreType B had increased sales over other StoreTypes. Maybe, we should investigate this further.
 lollipop_sales_by_storetype
 
 #3e. EDA on Assortment
 #_____________________
 
-#Lets group by assortment and year, which allows us to see a breakdown in possible trends from year to year! 
+#Lets group by assortment and year, which allows us to see a breakdown in possible trends from year to year!
 group_by_assortment <- modified_train %>% group_by(Assortment, Year) %>%
-  summarise(Mean_Sales_By_Assortment = mean(Sales), Median_Sales_By_Assortment = median(Sales), Promotions_By_Assortment = sum(Promo2)) 
+  summarise(Mean_Sales_By_Assortment = mean(Sales), Median_Sales_By_Assortment = median(Sales), Promotions_By_Assortment = sum(Promo2))
 
 #Lolipop chart by assortment
-#Interesting, the store with assortment type b reported larger number of sales than the other stores! 
-lollipop_sales_by_assortment <- ggplot(group_by_assortment, aes(x=Mean_Sales_By_Assortment, y=Assortment, color=Assortment, label = paste0(round(Mean_Sales_By_Assortment, 0)))) + 
+#Interesting, the store with assortment type b reported larger number of sales than the other stores!
+lollipop_sales_by_assortment <- ggplot(group_by_assortment, aes(x=Mean_Sales_By_Assortment, y=Assortment, color=Assortment, label = paste0(round(Mean_Sales_By_Assortment, 0)))) +
   geom_segment(aes(x = 0, y = Assortment, xend = Mean_Sales_By_Assortment, yend = Assortment), color = "black") +
   facet_wrap(~Year) +
   xlim(0, 10000) +
   ggtitle("Sales By Assortment Type") +
   geom_point(size=12) +
   geom_text(color = "white", size = 3) +
-  theme_fivethirtyeight() +   
+  theme_fivethirtyeight() +
   theme(axis.title = element_text()) + xlab('Sales') + ylab("Assortment Type")
 
 lollipop_sales_by_assortment
@@ -197,13 +195,13 @@ lollipop_sales_by_assortment
 #3e. EDA on Competition Distance
 #_____________________
 
-train_violin <- modified_train %>% 
-  group_by(Store, StoreType) %>% 
-  filter(Open == 1) %>% 
+train_violin <- modified_train %>%
+  group_by(Store, StoreType) %>%
+  filter(Open == 1) %>%
   summarise(mean_sales = mean(Sales), mean_customers = median(Customers), total_promos = sum(Promo), avg_sales_per_customer = round(mean_sales/mean_customers, 3), avg_num_promotions = mean(Promo), avg_sales_per_total_promotions = round(mean_sales/avg_num_promotions, 3), avg_competition_distance = round(mean(CompetitionDistance),5), avg_sales_by_competition_distance = round(mean_sales/avg_competition_distance, 3))
 
-#Interesting, the total number of promotions doesn't seem to indicate an increase in average sales. 
-avg_sales_by_avg_distance <- ggplot(train_violin, aes(x=mean_sales, y=avg_competition_distance, fill=StoreType)) + 
+#Interesting, the total number of promotions doesn't seem to indicate an increase in average sales.
+avg_sales_by_avg_distance <- ggplot(train_violin, aes(x=mean_sales, y=avg_competition_distance, fill=StoreType)) +
   geom_violin(alpha=0.7, color="gray")+
   coord_flip() +
   facet_wrap(~StoreType) +
@@ -219,7 +217,7 @@ avg_sales_by_avg_distance
 
 # 4. Cross-Validation of Final Model --------------------------------------
 # We are using LOESS with span=0.02 for our final model because it gave us the best score!
-# If you're interested in looking at the full CV of how we got span = 0.02, it's in the extras section. 
+# If you're interested in looking at the full CV of how we got span = 0.02, it's in the extras section.
 
 # Add folds and randomize
 n_folds <- 10
@@ -237,33 +235,33 @@ for(i in 1:n_folds){
     filter(fold != i)
   pseudo_test <- modified_train %>%
     filter(fold == i) %>% as.data.frame()
-  
+
   #giving id's to pseudo test
   Id <- rownames(pseudo_test)
-  pseudo_test <- cbind(Id=Id, pseudo_test) 
-  
+  pseudo_test <- cbind(Id=Id, pseudo_test)
+
   # 2. Fit model on training data
   model_loess <- loess(Sales ~ CompetitionDistance, pseudo_train, span=0.02)
-  
+
   # 3. Make predictions on test data & evaluate score
-  # Making predictions and getting the desired scores wasn't easy so we had to make a bunch of 
+  # Making predictions and getting the desired scores wasn't easy so we had to make a bunch of
   # new variables and get to the point where we wanted
-  
+
   predictions_loess <- predict(model_loess, newdata=pseudo_test$CompetitionDistance) %>%
     tbl_df()
   final_loess <- data.frame(pseudo_test$Id,predictions_loess$value) %>%
-    transmute(Id=pseudo_test.Id,PredictedSales=predictions_loess.value) 
+    transmute(Id=pseudo_test.Id,PredictedSales=predictions_loess.value)
   pseudo_test_2 <- pseudo_test %>%
     mutate(ActualSales = Sales) %>%
-    select(Id, ActualSales) 
+    select(Id, ActualSales)
   final_loess <- left_join(final_loess,pseudo_test_2, by="Id" )
-  final_loess_0_ignored <- final_loess %>% 
+  final_loess_0_ignored <- final_loess %>%
     filter(ActualSales != 0)
   score_vector[i] <- final_loess_0_ignored %>%
     summarize(score = sqrt(mean(((ActualSales-PredictedSales)/ActualSales)^2)))
-  
+
   print(i)
-  
+
 }
 
 # Estimated score
@@ -282,7 +280,7 @@ predictions_loess <- predict(model_loess, newdata=modified_test$CompetitionDista
 sample_submission_loess <- data.frame(modified_test$Id,predictions_loess$value) %>%
   transmute(Id=modified_test.Id,Sales=predictions_loess.value)
 
-sample_submission_loess %>% 
+sample_submission_loess %>%
   readr::write_csv("Files/FINAL_SUBMISSION.csv")
 
 
@@ -299,63 +297,63 @@ df_scores <- rep(0,100)
 
 
 for(i in df_vals){
-  
+
   # Assign folds at random
   n_folds <- 10
-  
+
   modified_train_2 <- modified_train %>%
     # Equivalent to shuffling the rows:
     sample_frac(1) %>%
     mutate(fold = rep(1:n_folds, length=n()))
-  
+
   #score for each iteration of the inner for loop
   instance_score <- rep(0, n_folds)
-  
+
   #for each fold
   for(j in 1:n_folds){
     #disjoint train and test sets
     pseudo_train <- modified_train_2 %>%
       filter(fold != j)
-    
-    
+
+
     pseudo_test <- modified_train_2 %>%
       filter(fold == j)  %>% as.data.frame()
     #id the test dataset
     Id <- rownames(pseudo_test)
     pseudo_test <- cbind(Id=Id, pseudo_test)
-    
+
     #fit the model
     model_spline <- smooth.spline(x=pseudo_train$CompetitionDistance, y=pseudo_train$Sales, df=i)
-    
+
     #Predict on the model
     spline_predictions <- model_spline %>%
-      predict(x=pseudo_test$CompetitionDistance) %>% 
+      predict(x=pseudo_test$CompetitionDistance) %>%
       tbl_df() %>%
       transmute(CompetitionDistance = x, PredictedSales = y)
-    
+
     pseudo_test_2 <- pseudo_test %>%
       select(Id, CompetitionDistance,Sales) %>%
       mutate(ActualSales = Sales) %>%      select(-Sales)
-    
-    final_spline <- left_join(pseudo_test_2, spline_predictions, by="CompetitionDistance") %>% 
+
+    final_spline <- left_join(pseudo_test_2, spline_predictions, by="CompetitionDistance") %>%
       distinct(Id, PredictedSales) %>%
       left_join(pseudo_test_2, by="Id")
-    
-    
+
+
     #get score for each iteration of the for loop
-    final_spline_0_ignored <- final_spline %>% 
+    final_spline_0_ignored <- final_spline %>%
       filter(ActualSales != 0)
-    
+
     #store the scores
     instance_score[j] <- final_spline_0_ignored %>%
       summarize(score = sqrt(mean(((ActualSales-PredictedSales)/ActualSales)^2)))
-    
+
   }
   print(i)
-  
+
   #Store the scores for each df values in a vector
   df_scores[i] <- as.numeric(instance_score) %>% mean()
-  
+
 }
 
 #find the optimal df
@@ -378,20 +376,20 @@ model_spline <- smooth.spline(x=modified_train$CompetitionDistance, y=modified_t
 
 #make predictions
 spline_predictions <- model_spline %>%
-  predict(x=modified_test$CompetitionDistance) %>% 
+  predict(x=modified_test$CompetitionDistance) %>%
   tbl_df() %>%
   transmute(CompetitionDistance = x, Sales = y)
 
 modified_test_2 <- modified_test %>%
   select(Id, CompetitionDistance)
 
-sample_submission_spline <- left_join(modified_test_2, spline_predictions, by="CompetitionDistance") %>% 
+sample_submission_spline <- left_join(modified_test_2, spline_predictions, by="CompetitionDistance") %>%
   distinct(Id, Sales) %>%
   ungroup(Store) %>%
   select(Id,Sales)
 
 #generate submissions for splines
-sample_submission_spline %>% 
+sample_submission_spline %>%
   readr::write_csv("Files/sample_submission_spline.csv")
 
 # Section B: Loess
@@ -407,60 +405,60 @@ span_scores <- rep(0,5)
 #we will need index to store the scores
 index <- 1
 for(i in span_vals){
-  
+
   # Assign folds at random
   n_folds <- 10
-  
+
   modified_train_2 <- modified_train %>%
     # Equivalent to shuffling the rows:
     sample_frac(1) %>%
     mutate(fold = rep(1:n_folds, length=n()))
-  
+
   #score for each iteration of the inner for loop
   instance_score <- rep(0, n_folds)
-  
+
   #for each fold
   for(j in 1:n_folds){
     #disjoint train and test sets
     pseudo_train <- modified_train_2 %>%
       filter(fold != j)
-    
+
     pseudo_test <- modified_train_2 %>%
       filter(fold == j)  %>% as.data.frame()
     #id the test dataset
     Id <- rownames(pseudo_test)
     pseudo_test <- cbind(Id=Id, pseudo_test)
-    
+
     #fit a model on pseudo_train
     model_loess <- loess(Sales ~ CompetitionDistance, pseudo_train, span=i)
-    
+
     #predict on pseudo_test
     predictions_loess <- predict(model_loess, newdata=pseudo_test$CompetitionDistance) %>%
       tbl_df()
-    
+
     final_loess <- data.frame(pseudo_test$Id,predictions_loess$value) %>%
-      transmute(Id=pseudo_test.Id,PredictedSales=predictions_loess.value) 
-    
+      transmute(Id=pseudo_test.Id,PredictedSales=predictions_loess.value)
+
     pseudo_test_2 <- pseudo_test %>%
       mutate(ActualSales = Sales) %>%
-      select(Id, ActualSales) 
-    
+      select(Id, ActualSales)
+
     final_loess <- left_join(final_loess,pseudo_test_2, by="Id" )
-    
-    final_loess_0_ignored <- final_loess %>% 
+
+    final_loess_0_ignored <- final_loess %>%
       filter(ActualSales != 0)
-    
+
     instance_score[j] <- final_loess_0_ignored %>%
       summarize(score = sqrt(mean(((ActualSales-PredictedSales)/ActualSales)^2)))
-    
+
   }
-  
+
   print(as.numeric(instance_score) %>% mean())
   #Store the scores for each span values in a vector
   span_scores[index] <- as.numeric(instance_score) %>% mean()
-  
+
   index <- index + 1
-  
+
 }
 
 #find the optimal span using this chunk of code
@@ -485,7 +483,7 @@ sample_submission_loess <- data.frame(modified_test$Id,predictions_loess$value) 
   transmute(Id=modified_test.Id,Sales=predictions_loess.value)
 
 #submit submissions to kaggle
-sample_submission_loess %>% 
+sample_submission_loess %>%
   readr::write_csv("Files/sample_submission_loess.csv")
 
 
@@ -506,8 +504,8 @@ lambda_values <- 10^seq(from = -2, to = 4, length = 2500)
 cv_ridge <- cv.glmnet(X, y, alpha = 0, lambda=lambda_values, nfolds = n_folds)
 
 #find the optimal lambda value
-lambda_star_ridge <- cv_ridge %>% 
-  glance() %>% 
+lambda_star_ridge <- cv_ridge %>%
+  glance() %>%
   .[["lambda.min"]]
 lambda_star_ridge
 
@@ -517,15 +515,15 @@ model_ridge <- glmnet(X, y, alpha = 0, lambda = lambda_star_ridge)
 test_X <- model.matrix(model_formula_test, data = modified_test)[, -1]
 
 #make predictions
-predictions_ridge <- model_ridge %>% 
-  predict(newx=test_X, s=lambda_star_ridge) %>% 
+predictions_ridge <- model_ridge %>%
+  predict(newx=test_X, s=lambda_star_ridge) %>%
   as.vector()
 
-sample_submission_ridge <- sample_submissions %>% 
+sample_submission_ridge <- sample_submissions %>%
   mutate(Sales = as.vector(predictions_ridge))
 
 #submit to kaggle
-sample_submission_ridge %>% 
+sample_submission_ridge %>%
   readr::write_csv("Files/sample_submission_ridge.csv")
 
 # Section D: LASSO
@@ -538,8 +536,8 @@ lambda_values <- 10^seq(from = -2, to = 4, length = 2500)
 cv_lasso <- cv.glmnet(X, y, alpha = 1, lambda=lambda_values, nfolds = n_folds)
 
 #find the optimal lambda value
-lambda_star_lasso <- cv_lasso %>% 
-  glance() %>% 
+lambda_star_lasso <- cv_lasso %>%
+  glance() %>%
   .[["lambda.min"]]
 lambda_star_lasso
 
@@ -549,13 +547,13 @@ model_lasso <- glmnet(X, y, alpha = 1, lambda = lambda_star_lasso)
 test_X <- model.matrix(model_formula_test, data = modified_test)[, -1]
 
 #make predictions
-predictions_lasso <- model_lasso %>% 
-  predict(newx=test_X, s=lambda_star_lasso) %>% 
+predictions_lasso <- model_lasso %>%
+  predict(newx=test_X, s=lambda_star_lasso) %>%
   as.vector()
 
-sample_submission_lasso <- sample_submissions %>% 
+sample_submission_lasso <- sample_submissions %>%
   mutate(Sales = as.vector(predictions_lasso))
 
 #submit to kaggle
-sample_submission_lasso %>% 
+sample_submission_lasso %>%
   readr::write_csv("Files/sample_submission_lasso.csv")

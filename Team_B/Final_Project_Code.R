@@ -28,14 +28,14 @@ for(i in 1:length(train$datetime)) {
 }
 
 # Add hours column to training data
-t <- strftime(dates, format="%H") %>% 
+t <- strftime(dates, format="%H") %>%
   as.numeric((t))
-train <- train %>% 
-  mutate(t) %>% 
+train <- train %>%
+  mutate(t) %>%
   rename("hours" = t)
 
 
-# Format test dates 
+# Format test dates
 dates <- rep(0, 6493)
 for(i in 1:length(test$datetime)) {
   x <- as.character(test$datetime[i])
@@ -45,13 +45,13 @@ for(i in 1:length(test$datetime)) {
   dates[i] <- x
 }
 # Add hours column to test data
-t <- strftime(test$datetime, format="%H") %>% 
+t <- strftime(test$datetime, format="%H") %>%
   as.numeric((t))
-test <- test %>% 
-  mutate(t) %>% 
+test <- test %>%
+  mutate(t) %>%
   rename("hours" = t)
 
-test <- test %>% 
+test <- test %>%
   mutate(datetime = dates)
 
 
@@ -62,10 +62,10 @@ ggplot(train, aes(x=season, y=count)) +
   geom_bar(stat = "identity")
 
 #Weather Analysis
-#1: Clear, Few clouds, Partly cloudy, Partly cloudy 
-#2: Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist 
-#3: Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds 
-#4: Heavy Rain + Ice Pallets + Thunderstorm + Mist, Snow + Fog 
+#1: Clear, Few clouds, Partly cloudy, Partly cloudy
+#2: Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist
+#3: Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds
+#4: Heavy Rain + Ice Pallets + Thunderstorm + Mist, Snow + Fog
 ggplot(train, aes(x=weather, y=count)) +
   geom_bar(stat = "identity")
 
@@ -96,10 +96,10 @@ ggplot(train, aes(x=workingday, y=count)) +
 #------- Principle Component Analysis ---------------------------------------------------------
 
 # Combine temperature and "feels like temperature" into one variable to achieve a slightly simpler model
-temps <- test %>% 
+temps <- test %>%
   select(temp, atemp)
 
-temps_recenter <- temps %>% 
+temps_recenter <- temps %>%
   mutate(
     temp = temp - mean(temp),
     atemp = atemp - mean(atemp)
@@ -112,24 +112,24 @@ eigen <- cov(temps_recenter) %>% eigen()
 eigen_vals <- eigen$values
 Gamma <- eigen$vectors
 
-Y <- as.matrix(temps_recenter) %*% Gamma %>% 
-  as_data_frame() %>% 
+Y <- as.matrix(temps_recenter) %*% Gamma %>%
+  as_data_frame() %>%
   rename(Y1 = V1, Y2 = V2)
 
 ggplot(Y, aes(x=Y1, y=Y2)) +
   geom_point()
 
-test <- test %>% 
+test <- test %>%
   mutate(temps = Y$Y1)
 
 #------- CREATE MODEL FORMULA  ---------------------------------------------------------
 
 # Create model formula for ridge regression
-model_formula <- train %>% 
+model_formula <- train %>%
   # Take all predictor variable names and separate them with + signs:
-  names() %>% 
-  setdiff(c("count", "registered", "casual", "datetime", "atemp", "temp")) %>% 
-  stringr::str_c(collapse=" + ") %>% 
+  names() %>%
+  setdiff(c("count", "registered", "casual", "datetime", "atemp", "temp")) %>%
+  stringr::str_c(collapse=" + ") %>%
   # Add outcome variable and ~ sign and convert to formula
   stringr::str_c("count ~ ", .)
 model_formula <- as.formula(model_formula)
@@ -225,63 +225,63 @@ train <- train %>%
 results_all_folds <- NULL
 
 for(i in 1:n_folds){
-  
+
   # 1. Create disjoint pseudo-train and pseudo-test sets based on folding scheme
   pseudo_train <- train %>%
     filter(fold != i)
   pseudo_test <- train %>%
     filter(fold == i)
-  
+
   # 2. Train the model using (i.e. fit the model to) the pseudo_train data.
   #Create X and Y values: x is every variable in each row and y is the sale price of every row
   X_new <- model.matrix(model_formula, data = pseudo_train)[,-1]
-  X_test <- model.matrix(model_formula, data = pseudo_test)[,-1]  
+  X_test <- model.matrix(model_formula, data = pseudo_test)[,-1]
   y <- pseudo_train$count
-  
+
   model_ridge <- glmnet(X_new, y, family = "poisson", alpha = 0, lambda = lambda_star_ridge)
-  
+
   # Get predictions for two methods.
-  ridge_predictions <- model_ridge %>% 
-    predict(newx = X_test) 
-  
+  ridge_predictions <- model_ridge %>%
+    predict(newx = X_test)
+
   # Compute RMSLE for each method and save them (by appending/binding to
   # results_all_folds)
-  results_all_folds <- 
+  results_all_folds <-
     # Create data frame of y=count and predictions from all three methods
     data_frame(
-      count = pseudo_test$count, 
-      ridge = as.vector(exp(ridge_predictions)),
-    ) %>% 
-    summarise(rmsle_ridge = rmsle(ridge, count)) %>% 
+      count = pseudo_test$count,
+      ridge = as.vector(exp(ridge_predictions))
+    ) %>%
+    summarise(rmsle_ridge = rmsle(ridge, count)) %>%
     mutate(fold=i) %>%
     bind_rows(results_all_folds)
-  
+
 }
 
-results_all_folds %>% 
+results_all_folds %>%
   summarise(RMSLE_ridge = mean(rmsle_ridge))
 
 #------- MAKE PREDICTIONS ---------------------------------------------------------------------
 
 #Dummy count so that model.matrix will still work
-test <- test %>% 
+test <- test %>%
   mutate(count = 5)
 
-X_test <- model.matrix(model_formula, data = test)[,-1]  
+X_test <- model.matrix(model_formula, data = test)[,-1]
 
 # Get predictions using ridge
-predictions <- model_ridge %>% 
-  predict(newx = X_test) %>% 
+predictions <- model_ridge %>%
+  predict(newx = X_test) %>%
   exp()
 
 #Select proper columns for submission
-test <- test %>% 
+test <- test %>%
   mutate(count = predictions) %>%
   select(datetime, count)
 
 
 # Write submissions to CSV
-sample_submission <- test %>% 
+sample_submission <- test %>%
   write_csv("submission.csv")
 
 
@@ -399,47 +399,47 @@ ggplotly()
 #   sample_frac(1) %>%
 #   mutate(fold = rep(1:n_folds, length=n())) %>%
 #   arrange(fold)
-# 
+#
 # View(train)
 # For all n_folds folds, save 2 RMSLE's from the 2 methods here. For each fold,
 # we will append/bind the results for each fold.
 results_all_folds <- NULL
 
 for(i in 1:n_folds){
-  
+
   # 1. Create disjoint pseudo-train and pseudo-test sets based on folding scheme
   pseudo_train <- train %>%
     filter(fold != i)
   pseudo_test <- train %>%
     filter(fold == i)
-  
+
   # 2. Train the model using (i.e. fit the model to) the pseudo_train data.
   #Create X and Y values: x is every variable in each row and y is the sale price of every row
   X_new <- model.matrix(model_formula, data = pseudo_train)[,-1]
-  X_test <- model.matrix(model_formula, data = pseudo_test)[,-1]  
+  X_test <- model.matrix(model_formula, data = pseudo_test)[,-1]
   y <- pseudo_train$count
-  
+
   model_LASSO <- glmnet(X_new, y, family = "poisson", alpha = 1, lambda = lambda_star_LASSO)
-  
+
   # Get predictions for LASSO.
-  LASSO_predictions <- model_LASSO %>% 
-    predict(newx = X_test) 
-  
+  LASSO_predictions <- model_LASSO %>%
+    predict(newx = X_test)
+
   # Compute RMSLE for each method and save them (by appending/binding to
   # results_all_folds)
-  results_all_folds <- 
+  results_all_folds <-
     # Create data frame of y=count and predictions from all three methods
     data_frame(
-      count = pseudo_test$count, 
+      count = pseudo_test$count,
       LASSO = as.vector(exp(LASSO_predictions))
-    ) %>% 
-    summarise(rmsle_LASSO = rmsle(LASSO, count)) %>% 
+    ) %>%
+    summarise(rmsle_LASSO = rmsle(LASSO, count)) %>%
     mutate(fold=i) %>%
     bind_rows(results_all_folds)
-  
+
 }
 
-results_all_folds %>% 
+results_all_folds %>%
   summarise(RMSLE_LASSO=mean(rmsle_LASSO))
 
 

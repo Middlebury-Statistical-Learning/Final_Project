@@ -20,8 +20,8 @@ library(rpart)
 
 
 # 2. Load Data Files & Data Cleaning --------------------------------------
-train <- read_csv('File/train_users_2.csv')
-sessions <- read_csv('Files/sessions.csv')
+train <- read_csv('Files/train_users_2.csv')
+# sessions <- read_csv('Files/sessions.csv')
 test <- read_csv('Files/test_users.csv')
 
 # We did some stuff with LASSO that took a long time to run, so we saved our
@@ -34,19 +34,19 @@ load('Files/Team_J.Rdata')
 
 # What do the abbreviations stand for?
 
-country_abbrevs<- cbind(unique(train$country_destination), 
+country_abbrevs<- cbind(unique(train$country_destination),
                         c("No destination found","US", "other", "France", "Canada", "United Kingdom",
                           "Spain", "Italy", "Portugal","Netherlands", "Germany","Australia"))
 country_abbrevs
 
 
 distribution_country_destination <-
-  train %>% 
+  train %>%
   group_by(country_destination) %>%
-  summarise(count = n(), prop = n()/nrow(train)) %>% 
-  arrange(desc(prop)) 
+  summarise(count = n(), prop = n()/nrow(train)) %>%
+  arrange(desc(prop))
 
-distribution_country_destination %>% 
+distribution_country_destination %>%
   ggplot(aes(x = reorder(country_destination, desc(prop)) , y=prop)) +
   geom_bar(stat = "identity") +
   labs(title = "Outcome variable: Country Destination in train
@@ -97,44 +97,44 @@ n_distinct(train$first_browser)
 
 # -language
 distribution_language <-
-  train %>% 
+  train %>%
   group_by(language) %>%
-  summarise(count = n(), prop = n()/nrow(train)) %>% 
+  summarise(count = n(), prop = n()/nrow(train)) %>%
   arrange(desc(prop))
 
 # -affiliate_provider
 distribution_affiliate_provider <-
-  train %>% 
+  train %>%
   group_by(affiliate_provider) %>%
-  summarise(count = n(), prop = n()/nrow(train)) %>% 
+  summarise(count = n(), prop = n()/nrow(train)) %>%
   arrange(desc(prop))
 
 # -affiliate channel
 distribution_affiliate_channel <-
-  train %>% 
+  train %>%
   group_by(affiliate_channel) %>%
-  summarise(count = n(), prop = n()/nrow(train)) %>% 
+  summarise(count = n(), prop = n()/nrow(train)) %>%
   arrange(desc(prop))
 
 # -first_affiliate_tracked
 distribution_first_affiliate_tracked <-
-  train %>% 
+  train %>%
   group_by(first_affiliate_tracked) %>%
-  summarise(count = n(), prop = n()/nrow(train)) %>% 
+  summarise(count = n(), prop = n()/nrow(train)) %>%
   arrange(desc(prop))
 
 # -first_device_type
 distribution_first_device_type <-
-  train %>% 
+  train %>%
   group_by(first_device_type) %>%
-  summarise(count = n(), prop = n()/nrow(train)) %>% 
+  summarise(count = n(), prop = n()/nrow(train)) %>%
   arrange(desc(prop))
 
 # -first_browser
 distribution_first_browser <-
-  train %>% 
+  train %>%
   group_by(first_browser) %>%
-  summarise(count = n(), prop = n()/nrow(train)) %>% 
+  summarise(count = n(), prop = n()/nrow(train)) %>%
   arrange(desc(prop))
 
 distribution_language
@@ -145,18 +145,18 @@ distribution_first_browser
 
 # GENDER - combine other and unknown into one factor
 
-# LANGUAGE - Conflicted. Either keep all.. Could be important. 
+# LANGUAGE - Conflicted. Either keep all.. Could be important.
 # Or: keep only native tongues of country_destination category?
 # https://www.loc.gov/standards/iso639-2/php/code_list.php
-# For now, top 9? 
+# For now, top 9?
 top_n_language <-
   distribution_language %>%
   slice(1:9)
 
-# AFFILIATE PROVIDER -Affiliate provider could be a proxy for language 
+# AFFILIATE PROVIDER -Affiliate provider could be a proxy for language
 # (which is proxy for user country).
 # Take top 6 on this one (direct, google, craiglist, bing, facebook, "other")
-top_n_affiliate_provider <- 
+top_n_affiliate_provider <-
   distribution_affiliate_provider %>%
   # exclude row 3 (other)
   slice(c(1:2, 4:6))
@@ -179,7 +179,7 @@ tablets <- c("iPad", "Android Tablet")
 # FIRST BROWSER
 # Top 4 (Chrome, Safari, Firefox, -unknown-, "other")
 # - Be sure to group Mobile Safari into safari, Chrome Mobile into Chrome, etc.
-top_n_first_browser <- 
+top_n_first_browser <-
   distribution_first_browser %>%
   slice(1:4)
 
@@ -190,17 +190,17 @@ train_pruned <- train_pruned %>%
          language = ifelse(language %in% top_n_language$language, language, "other"),
          affiliate_provider = ifelse(affiliate_provider %in% top_n_affiliate_provider$affiliate_provider,
                                      affiliate_provider, "other"),
-         first_affiliate_tracked = 
+         first_affiliate_tracked =
            ifelse(first_affiliate_tracked %in% top_n_affiliate_tracked$first_affiliate_tracked,
                   first_affiliate_tracked, "other"),
-         first_device_type = 
+         first_device_type =
            ifelse(first_device_type %in% desktops, "desktop",
                   ifelse(first_device_type %in% phones, "phone",
                          ifelse(first_device_type %in% tablets, "tablet", "Other/Unknown"))),
          first_browser = ifelse(first_browser %in% top_n_first_browser$first_browser,
                                 first_browser, ifelse(first_browser == "Chrome Mobile", "Chrome",
                                                       ifelse(first_browser == "Mobile Safari", "Safari", "other")))
-         
+
   )
 
 
@@ -208,13 +208,13 @@ train_pruned <- train_pruned %>%
 # 4. Cross-Validation of Final Model --------------------------------------
 
 model_formula_ALL <- train %>%
-  names() %>% 
-  setdiff(c("id", "timestamp_first_active", "country_destination", 
-            "date_first_booking")) %>% 
-  stringr::str_c(collapse=" + ") %>% 
+  names() %>%
+  setdiff(c("id", "timestamp_first_active", "country_destination",
+            "date_first_booking")) %>%
+  stringr::str_c(collapse=" + ") %>%
   stringr::str_c("country_destination ~ ", .)
 
-#we took out date_first_booking because half of the values were missing, even 
+#we took out date_first_booking because half of the values were missing, even
 #though it probably would be very useful if we had the tools/time to make sense
 #of it.
 
@@ -222,20 +222,20 @@ model_formula_ALL <- as.formula(model_formula_ALL)
 
 
 cv_CART <- function(complexity_parameters, n_folds) {
-  
+
   cp_scores <- rep(0, length(complexity_parameters))
-  
+
   # Assign folds at random
   n_folds <- n_folds
   train_pruned <- train_pruned %>%
     sample_frac(1) %>%
     mutate(fold = rep(1:n_folds, length = n())) %>%
     arrange(fold)
-  
+
   for (j in 1:length(complexity_parameters)) {
     # Store your scores here:
     scores <- rep(0, n_folds)
-    
+
     for (i in 1:n_folds) {
       # 1. Create disjoint pseudo-train and pseudo-test sets based on folding
       # scheme.
@@ -243,7 +243,7 @@ cv_CART <- function(complexity_parameters, n_folds) {
         filter(fold != i)
       pseudo_test <- train_pruned %>%
         filter(fold == i)
-      
+
       # 2. Train the model using (i.e. fit the model to) the pseudo_train data.
       # set up the input for the model
       knobs_loop <-
@@ -255,7 +255,7 @@ cv_CART <- function(complexity_parameters, n_folds) {
           control = knobs_loop,
           method = "class"
         )
-      
+
       # 3. Get prediction for the pseudo_test data using the trained model
       predictions_loop <-
         predict(model_CART_loop, newdata = pseudo_test, type = "class")
@@ -264,32 +264,32 @@ cv_CART <- function(complexity_parameters, n_folds) {
       submission_loop <-
         bind_cols(tbl_df(pseudo_test$id), predictions_loop) %>% rename(id = value)
       # 4. Compute your score on the pseudo_test data Using classification error
-      # The Kaggle scoring mechanism for this competition is, (normalized 
+      # The Kaggle scoring mechanism for this competition is, (normalized
       # discounted cumulative
-      # gain)[https://en.wikipedia.org/wiki/Discounted_cumulative_gain], which 
+      # gain)[https://en.wikipedia.org/wiki/Discounted_cumulative_gain], which
       # is pretty complicated if you choose to make multiple, ranked predictions
-      # for each user. There is no function in mlmetrics that does this.  But, 
-      # when you only submit the top prediction for a user, the scoring 
-      # mechanism boils down to proportion correct/classification error, so we 
+      # for each user. There is no function in mlmetrics that does this.  But,
+      # when you only submit the top prediction for a user, the scoring
+      # mechanism boils down to proportion correct/classification error, so we
       # used this for our scoring in CV.
-      
+
       score <-
         sum(pseudo_test$country_destination == submission_loop$country) / nrow(pseudo_test)
-      
+
       # 5. Save your score for this fold
       scores[i] <- score
     }
     # Store mean cross-validated score for this value of cp
     cp_scores[j] <- mean(scores)
-    
+
     # Print statement to view progress of loop
     if (j %% 1 == 0) {
       print(j)
     }
   }
   # Create data frame with all tested cp values and corresponding sores
-  scores_per_cp <- complexity_parameters %>% 
-    tbl_df() %>% 
+  scores_per_cp <- complexity_parameters %>%
+    tbl_df() %>%
     mutate(score = cp_scores) %>%
     rename(cp = value)
   return(scores_per_cp)
@@ -354,20 +354,20 @@ distribution_country_destination
 # Shrinkage on all variables without clean-up ---------------------------
 model_formula_ALL <- train %>%
   # Take all predictor variable names and separate them with + signs:
-  names() %>% 
-  setdiff(c("id", "timestamp_first_active", "country_destination", 
-            "date_first_booking")) %>% 
-  stringr::str_c(collapse=" + ") %>% 
+  names() %>%
+  setdiff(c("id", "timestamp_first_active", "country_destination",
+            "date_first_booking")) %>%
+  stringr::str_c(collapse=" + ") %>%
   # Add outcome variable and ~ sign and convert to formula
   stringr::str_c("country_destination ~ ", .)
 model_formula_ALL <- as.formula(model_formula_ALL)
 model_formula_ALL
 
 # Replace missing values
-train_na_replace <- train %>% 
+train_na_replace <- train %>%
   mutate(
     date_first_booking = ifelse(is.na(date_first_booking),
-                                mean(date_first_booking, na.rm=TRUE), 
+                                mean(date_first_booking, na.rm=TRUE),
                                 date_first_booking),
     age = ifelse(is.na(age), mean(age, na.rm=TRUE), age))
 # Once age and date_first_booking are taken care of, only 3% of rows have missing values.
@@ -444,10 +444,10 @@ ggplotly(US_plot)
 # multnet on pruned data train --------------------------------
 
 # Replace missing values
-train_pruned_na_replace <- train_pruned %>% 
+train_pruned_na_replace <- train_pruned %>%
   mutate(
     date_first_booking = ifelse(is.na(date_first_booking),
-                                mean(date_first_booking, na.rm=TRUE), 
+                                mean(date_first_booking, na.rm=TRUE),
                                 date_first_booking),
     age = ifelse(is.na(age), mean(age, na.rm=TRUE), age))
 
@@ -465,8 +465,8 @@ y_pruned <- train_pruned_na_replace$country_destination
 lambdas <- model_lasso$lambda
 
 mbm2 = microbenchmark(
-  model_lasso_pruned <- 
-    glmnet(X_pruned, y_pruned, alpha = 1, family = "multinomial", 
+  model_lasso_pruned <-
+    glmnet(X_pruned, y_pruned, alpha = 1, family = "multinomial",
            type.multinomial = "ungrouped", maxit = 50000, lambda = lambdas),
   times = 1
 )
@@ -521,7 +521,7 @@ ggplotly(NDF_plot)
 
 # Cross Validation ------------------------------------
 mbm4 = microbenchmark(
-  cv_grouped <- 
+  cv_grouped <-
     cv.glmnet(X_pruned, y_pruned, alpha=1, family="multinomial", nfolds=5,
               type.measure = "class", type.multinomial="ungrouped", lambda = lambdas)
 )
@@ -533,17 +533,17 @@ test_pruned <- test_pruned %>%
          language = ifelse(language %in% top_n_language$language, language, "other"),
          affiliate_provider = ifelse(affiliate_provider %in% top_n_affiliate_provider$affiliate_provider,
                                      affiliate_provider, "other"),
-         first_affiliate_tracked = 
+         first_affiliate_tracked =
            ifelse(first_affiliate_tracked %in% top_n_affiliate_tracked$first_affiliate_tracked,
                   first_affiliate_tracked, "other"),
-         first_device_type = 
+         first_device_type =
            ifelse(first_device_type %in% desktops, "desktop",
                   ifelse(first_device_type %in% phones, "phone",
                          ifelse(first_device_type %in% tablets, "tablet", "Other/Unknown"))),
          first_browser = ifelse(first_browser %in% top_n_first_browser$first_browser,
                                 first_browser, ifelse(first_browser == "Chrome Mobile", "Chrome",
                                                       ifelse(first_browser == "Mobile Safari", "Safari", "other")))
-         
+
   )
 
 #this does not work and it should?
