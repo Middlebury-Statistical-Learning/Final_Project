@@ -12,6 +12,7 @@ library(lubridate)
 library(caret)
 library(MLmetrics)
 library(randomForest)
+library(knitr)
 
 # 2. Load and Clean Data ----------------------------------------------------------------
 train <- read_csv("Files/train.csv")
@@ -31,22 +32,22 @@ clean <- train %>%
 cleaner <- clean %>%
   mutate(female = ifelse(grepl("Female", SexuponOutcome), 1, ifelse(grepl("Unknown", SexuponOutcome), .5, 0))) %>%
   mutate(intactanimal = ifelse(grepl("Intact", SexuponOutcome), 1, ifelse(grepl("Unknown", SexuponOutcome), .5, 0))) %>%
-  mutate(mix = ifelse(grepl("Mix", Breed), 1, 0)) 
+  mutate(mix = ifelse(grepl("Mix", Breed), 1, 0))
 
 #doing ages
 cleanest <- cleaner %>%
   mutate(agenumber = ifelse(AgeuponOutcome == "Unknown", NA, as.integer(substr(AgeuponOutcome, 0, 1)))) %>%
-  mutate(unit = ifelse(grepl("year", AgeuponOutcome), 365, 
-                       ifelse(grepl("month",AgeuponOutcome), 30, 
+  mutate(unit = ifelse(grepl("year", AgeuponOutcome), 365,
+                       ifelse(grepl("month",AgeuponOutcome), 30,
                               ifelse(grepl("weeks", AgeuponOutcome), 7, 1)))) %>%
   mutate(agedays = agenumber*unit)  %>%
   mutate(ageindays = ifelse(is.na(agedays), mean(agedays, na.rm = TRUE), agedays))
 
-#final cleaning 
+#final cleaning
 superclean <- cleanest %>%
   mutate(Dog = ifelse(grepl("Dog", AnimalType), 1, 0)) %>%
-  mutate(named = ifelse(grepl("Noname", Name), 0, 1)) %>% 
-  mutate(Color = ifelse(Color %in% c("Calico", "Torbie", "Tricolor", "Tortie", "Buff", "Seal Point"), 
+  mutate(named = ifelse(grepl("Noname", Name), 0, 1)) %>%
+  mutate(Color = ifelse(Color %in% c("Calico", "Torbie", "Tricolor", "Tortie", "Buff", "Seal Point"),
                         "/", Color)) %>%
   mutate(solid = ifelse(grepl("/", Color), 0, 1)) %>%
   mutate(babyanimal = ifelse(ageindays<365, 1, 0))%>%
@@ -73,8 +74,8 @@ ggplot(intact, aes(x=OutcomeType, y=num_animals, fill = intactanimal))+
   geom_bar(stat = "identity", position = "dodge")+
   labs(title = "Fixed vs. Intact", x = "Outcome Type", y = "Percent of Animals")
 #This visualization shows the major component of my CART model, which using whether an
-#animal is fixed to determine it's outcome.  The graph clearly shows the majority of 
-#animals who are adopted are fixed, while most of the intact animals (not fixed) are 
+#animal is fixed to determine it's outcome.  The graph clearly shows the majority of
+#animals who are adopted are fixed, while most of the intact animals (not fixed) are
 #transfered.  Likely, the Austin Animal Shelter does not have the capacity to spay and
 #neuter all of the animals they recieve, so they transfer many of them to be fixed
 
@@ -93,12 +94,12 @@ ggplot(avgage, aes(x=ageindays, y=num_age))+
   geom_point()+
   labs(title = "Age at Outcome", x = "Approximate Age in Days", y = "Number of Animals")
 #Since the animals coming into the shelter are strays or people's pets they've lost,
-#their ages are approximated.  
+#their ages are approximated.
 
 #one last table compiling the means for each outcome by variable.
 edas <- superclean %>%
   group_by(OutcomeType) %>%
-  summarise(mean(ageindays), mean(intactanimal), mean(Dog), mean(female), 
+  summarise(mean(ageindays), mean(intactanimal), mean(Dog), mean(female),
             mean(mix), mean(month), mean(named), mean(solid), mean(babyanimal))
 kable(edas)
 
@@ -114,14 +115,14 @@ testclean <- test %>%
   mutate(intactanimal = ifelse(grepl("Intact", SexuponOutcome), 1, ifelse(grepl("Unknown", SexuponOutcome), .5, 0))) %>%
   mutate(mix = ifelse(grepl("Mix", Breed), 1, 0)) %>%
   mutate(agenumber = ifelse(AgeuponOutcome == "Unknown", NA, as.integer(substr(AgeuponOutcome, 0, 1)))) %>%
-  mutate(unit = ifelse(grepl("year", AgeuponOutcome), 365, 
-                       ifelse(grepl("month",AgeuponOutcome), 30, 
+  mutate(unit = ifelse(grepl("year", AgeuponOutcome), 365,
+                       ifelse(grepl("month",AgeuponOutcome), 30,
                               ifelse(grepl("weeks", AgeuponOutcome), 7, 1)))) %>%
   mutate(agedays = agenumber*unit)  %>%
   mutate(ageindays = ifelse(is.na(agedays), mean(agedays, na.rm = TRUE), agedays)) %>%
   mutate(Dog = ifelse(grepl("Dog", AnimalType), 1, 0)) %>%
   mutate(named = ifelse(grepl("Noname", Name), 0, 1)) %>%
-  mutate(Color = ifelse(Color %in% c("Calico", "Torbie", "Tricolor", "Tortie", "Buff", "Seal Point"), 
+  mutate(Color = ifelse(Color %in% c("Calico", "Torbie", "Tricolor", "Tortie", "Buff", "Seal Point"),
                         "/", Color)) %>%
   mutate(solid = ifelse(grepl("/", Color), 0, 1)) %>%
   mutate(babyanimal = ifelse(ageindays<365, 1, 0))%>%
@@ -153,42 +154,42 @@ train_data <- superclean %>%
 #looping
 for(j in 1:length(kneighs)){
   score <- rep(0, folds)
-  
+
   for(i in 1:folds){
     # pseudo train/test data sets
     pseudotrain <- train_data %>%
       filter(fold != i)
     pseudotest <- train_data %>%
       filter(fold == i)
-    
+
     #fit model
     loopmod <-knn3(OutcomeType ~ Dog+intactanimal+mix+ageindays+month+female+solid+babyanimal, data=pseudotrain, k =kneighs[j])
-    
+
     #predict using model from loop
     probs <- predict(loopmod, newdata=pseudotest, type=c("prob", "class"))
-    
+
     #scoring (same as score on kaggle)
     scorekag <- MultiLogLoss(y_true = as.factor(pseudotest$OutcomeType), y_pred = probs)
-    
+
     #score for each fold
     score[i] <- scorekag
   }
   #cv score for k neighs
   kscore[j] <- mean(score)
-  
+
   #loop progress
   if (j%%1 == 0){print(j)}
 }
 #originally did 5 to 500 for neighbors, but 150-200 was the minimum, so I wanted to look
 #more closely here
 
-scoresbyk <- kneighs %>% 
-  tbl_df() %>% 
+scoresbyk <- kneighs %>%
+  tbl_df() %>%
   mutate(score = kscore) %>%
   rename(k = value)
 
 scoresbyk %>%
-  ggplot(aes(x = k, y = score)) + 
+  ggplot(aes(x = k, y = score)) +
   geom_point() +
   coord_cartesian(ylim = c(1.03, 1.06))
 
@@ -201,13 +202,13 @@ bestk <- 165
 knnfinal <- knn3(OutcomeType ~ Dog+intactanimal+mix+ageindays+month+named, train_data, k = bestk)
 
 probabilities <- testclean %>%
-  predict(knnfinal, newdata=., type=c("prob", "class")) %>% 
+  predict(knnfinal, newdata=., type=c("prob", "class")) %>%
   tbl_df()  %>%
-  mutate(ID = 1:n()) 
+  mutate(ID = 1:n())
 
-submission3 <- probabilities%>% 
-  write_csv("Connor_McCormick_submission.csv")
-#score: 1.01763, better than either of the CART models.  
+submission3 <- probabilities%>%
+  write_csv("Files/Connor_McCormick_submission.csv")
+#score: 1.01763, better than either of the CART models.
 
 
 
@@ -216,7 +217,7 @@ submission3 <- probabilities%>%
 
 # 6. Extras ----------------------------------------------------------------
 
-#Looking at outcomes by animal as a percentage 
+#Looking at outcomes by animal as a percentage
 ggplot(animal, aes(x=OutcomeType, y=num_animals, fill = AnimalType))+
   geom_bar(stat = "identity", position = "fill")+
   labs(title = "Shelter Animal Outcomes", x = "Outcome Type", y = "Percent of Animals")
@@ -225,8 +226,8 @@ ggplot(animal, aes(x=OutcomeType, y=num_animals, fill = AnimalType))+
 #formula
 model_formula <- as.formula("OutcomeType ~ Dog+mix+ageindays+month+named+solid+female+babyanimal")
 #I removed intact animal, the variable for whether the animal is fixed, because it was a very
-#strong determining predictor.  Also, it appears that the shelter puts fixed animals up for 
-#adoption, while transfering animals who are not fixed to partners to be fixed.  
+#strong determining predictor.  Also, it appears that the shelter puts fixed animals up for
+#adoption, while transfering animals who are not fixed to partners to be fixed.
 
 
 #CART Model without intactanimal variable
@@ -245,11 +246,11 @@ plot(model, margin=0.25)
 text(model, use.n = TRUE)
 box()
 sub <- testclean %>%
-  predict(model, newdata=.)%>% 
+  predict(model, newdata=.)%>%
   tbl_df() %>%
-  mutate(ID = 1:n()) 
+  mutate(ID = 1:n())
 
-submission <- sub%>% 
+submission <- sub%>%
   write_csv("Connor_McCormick_submission6.csv")
 #score of 1.06466, before named included
 #now 1.07458, named made it worse
@@ -272,11 +273,11 @@ text(model2, use.n = TRUE)
 box()
 
 sub2 <- testclean %>%
-  predict(model2, newdata=.)%>% 
+  predict(model2, newdata=.)%>%
   tbl_df() %>%
-  mutate(ID = 1:n()) 
+  mutate(ID = 1:n())
 
-submission3 <- sub2%>% 
+submission3 <- sub2%>%
   write_csv("Connor_McCormick_submission_intact.csv")
 
 #slightly better score of 1.03623
