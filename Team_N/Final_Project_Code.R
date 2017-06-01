@@ -33,9 +33,9 @@ NormalizedWeightedGini <- function(solution, weights, submission) {
 
 # 2. Load Data Files & Data Cleaning --------------------------------------
 
-# Data is from https://www.kaggle.com/c/liberty-mutual-fire-peril/data 
-# train <- read.csv("train.csv", na.strings = c("NA", "Z"))
-# test <- read.csv("test.csv", na.strings = c("NA", "Z"))
+# Data is from https://www.kaggle.com/c/liberty-mutual-fire-peril/data
+train <- read.csv("Files/train.csv", na.strings = c("NA", "Z"))
+test <- read.csv("Files/test.csv", na.strings = c("NA", "Z"))
 set.seed(39)
 
 # 3. Top 4-5 Visualizations/Tables of EDA ---------------------------------
@@ -49,10 +49,10 @@ train %>%
   ggplot(aes(target)) +
     geom_histogram()
 
-ggplot(train, aes(var4, target)) + 
+ggplot(train, aes(var4, target)) +
   geom_bar(stat = "identity")
 
-ggplot(train, aes(weatherVar82, target)) + 
+ggplot(train, aes(weatherVar82, target)) +
   geom_point()
 
 ggplot(train, aes(weatherVar202, target)) +
@@ -66,8 +66,8 @@ train2 <- train %>%
 
 model_formula <- train2 %>%
   select(-dummy, -c(crimeVar1:weatherVar236)) %>%
-  names() %>% 
-  setdiff(c("target", "id")) %>% 
+  names() %>%
+  setdiff(c("target", "id")) %>%
   stringr::str_c(collapse=" + ") %>%
   stringr::str_c("target ~ ", .)
 model_formula <- as.formula(model_formula)
@@ -137,11 +137,11 @@ write_csv(test2, path = "Submission14.csv")
 #   select(-c(id, target, var2, var4, var5, var6, var9, dummy, var1,
 #             var3, var12, var14, var16, crimeVar1, crimeVar2, crimeVar3,
 #             crimeVar4, crimeVar5, crimeVar6, crimeVar7, crimeVar8, crimeVar9))
-#   
+#
 # z <- princomp(formula = ~., data = data_pca, na.action=na.exclude, scores = TRUE)
 # y <- as.table(z$loadings)
 # x <- as.data.frame.matrix(y)
-# 
+#
 # w <- as.data.frame.matrix(z$scores) %>%
 #   select(1:10)
 
